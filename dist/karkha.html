@@ -5173,6 +5173,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 	
 
+
+	<!-- Fix Meta Pixel non-standard scroll event -->
+	<script>
+	(function() {
+		if (typeof fbq !== 'undefined') {
+			var originalFbq = fbq;
+			window.fbq = function() {
+				var args = Array.prototype.slice.call(arguments);
+				// Convert non-standard 'scroll' event to trackCustom
+				if (args[0] === 'track' && args[1] === 'scroll') {
+					args[0] = 'trackCustom';
+				}
+				return originalFbq.apply(this, args);
+			};
+			// Preserve fbq properties
+			for (var prop in originalFbq) {
+				if (originalFbq.hasOwnProperty(prop)) {
+					window.fbq[prop] = originalFbq[prop];
+				}
+			}
+		}
+	})();
+	</script>
+
 </body>
 
 	
