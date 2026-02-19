@@ -5506,24 +5506,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	
 
 
-	<!-- Fix Meta Pixel non-standard scroll event -->
+	<!-- Fix Meta Pixel - Ensure fbq is always defined -->
 	<script>
 	(function() {
-		if (typeof fbq !== 'undefined') {
-			var originalFbq = fbq;
+		// Create fbq stub if not already defined (for GTM compatibility)
+		if (typeof fbq === 'undefined') {
 			window.fbq = function() {
-				var args = Array.prototype.slice.call(arguments);
-				// Convert non-standard 'scroll' event to trackCustom
-				if (args[0] === 'track' && args[1] === 'scroll') {
-					args[0] = 'trackCustom';
-				}
-				return originalFbq.apply(this, args);
+				fbq.queue = fbq.queue || [];
+				fbq.queue.push(arguments);
 			};
-			// Preserve fbq properties
-			for (var prop in originalFbq) {
-				if (originalFbq.hasOwnProperty(prop)) {
-					window.fbq[prop] = originalFbq[prop];
-				}
+			fbq.push = fbq;
+			fbq.loaded = true;
+			fbq.version = '2.0';
+			fbq.queue = [];
+		}
+		
+		// Wrap fbq to fix non-standard scroll event
+		var originalFbq = window.fbq;
+		window.fbq = function() {
+			var args = Array.prototype.slice.call(arguments);
+			// Convert non-standard 'scroll' event to trackCustom
+			if (args[0] === 'track' && args[1] === 'scroll') {
+				args[0] = 'trackCustom';
+			}
+			return originalFbq.apply(this, args);
+		};
+		
+		// Preserve fbq properties
+		for (var prop in originalFbq) {
+			if (originalFbq.hasOwnProperty(prop)) {
+				window.fbq[prop] = originalFbq[prop];
 			}
 		}
 	})();
